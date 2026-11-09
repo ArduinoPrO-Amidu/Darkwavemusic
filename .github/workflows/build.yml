@@ -1,6 +1,5 @@
 
 
-
 name: Build DarkWave Music APK
 
 on:
@@ -36,6 +35,13 @@ jobs:
 
       - name: Extract MP3 Project
         run: unzip -q Darkwavemusic.zip -d extracted
+
+      - name: Create missing environment file
+        run: |
+          cat > extracted/.env.example <<'EOF'
+          # GEMINI_API_KEY: Configure your own API key if required.
+          # GEMINI_API_KEY=MY_GEMINI_API_KEY
+          EOF
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
