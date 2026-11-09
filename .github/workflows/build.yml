@@ -1,5 +1,5 @@
 
-name: Build MP3 Player APK
+name: Build DarkWave Music APK
 
 on:
   workflow_dispatch:
@@ -23,41 +23,37 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
 
       - name: Extract MP3 Project
+        run: unzip -q Darkwavemusic.zip -d extracted
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Create debug signing key
         run: |
-          unzip -q Darkwavemusic.zip -d extracted
-
-      - name: Locate Gradle Wrapper
-        id: gradle
-        run: |
-          WRAPPER=$(find extracted -type f -name gradlew -print -quit)
-
-          if [ -z "$WRAPPER" ]; then
-            echo "Gradle wrapper not found in ZIP!"
-            find extracted -maxdepth 5 -type f | head -100
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$WRAPPER")
-          chmod +x "$WRAPPER"
-
-          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-          echo "Project found: $PROJECT_DIR"
+          keytool -genkeypair -v \
+            -keystore extracted/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Build APK
         run: |
-          cd "${{ steps.gradle.outputs.project_dir }}"
-          ./gradlew assembleDebug
+          cd extracted
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Darkwave-MP3-Player
-          path: extracted/**/build/outputs/apk/debug/*.apk
+          name: DarkWave-Music-APK
+          path: extracted/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
 
